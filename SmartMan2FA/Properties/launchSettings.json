@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SmartMan2FA": {
+      "commandName": "Project",
+      "commandLineArgs": "-g -a FrankHuang -k 70742842"
+    }
+  }
+}
