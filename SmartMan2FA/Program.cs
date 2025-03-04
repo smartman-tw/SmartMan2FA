@@ -42,7 +42,7 @@ namespace SmartMan2FA
                     var tfa = new TwoFactorAuthenticator();
                     // generate a new setup code
                     SetupCode setupInfo = tfa.GenerateSetupCode("SmartMan2FA", account, secretKey, false);
-                    logger.LogText("Setup code and QRCode have been generated successfully.");
+                    logger.LogText($"Setup code and QRCode for the account {account} have been generated successfully.");
                     // write the manual entry setup code to a text file
                     string manualEntrySetupCode = setupInfo.ManualEntryKey;
                     // write the QR code setup code to a text file
