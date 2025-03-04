@@ -42,7 +42,7 @@ namespace SmartMan2FA
                     var tfa = new TwoFactorAuthenticator();
                     // generate a new setup code
                     SetupCode setupInfo = tfa.GenerateSetupCode("SmartMan2FA", account, secretKey, false);
-                    logger.LogText($"Setup code and QRCode for the account {account} have been generated successfully.");
+                    logger.LogText($"Setup code and QRCode for the account '{account}' have been created successfully.");
                     // write the manual entry setup code to a text file
                     string manualEntrySetupCode = setupInfo.ManualEntryKey;
                     // write the QR code setup code to a text file
@@ -51,7 +51,8 @@ namespace SmartMan2FA
                     {
                         file.WriteLine(manualEntrySetupCode);
                     }
-                    logger.LogText($"Setup code has been output to {setupCodeFileName}.");
+                    string setupCodeFullPath = Path.GetFullPath(setupCodeFileName);
+                    logger.LogText($"Setup code '{setupCodeFileName}' has been created in '{setupCodeFullPath}'.");
                     string qrCodeBase64String = setupInfo.QrCodeSetupImageUrl;
                     // extract the base64 QRCode from the setup code
                     qrCodeBase64String = qrCodeBase64String.Split(new string[] { "base64," }, StringSplitOptions.None)[1];
@@ -62,7 +63,8 @@ namespace SmartMan2FA
                     {
                         file.Write(qrCodeBytes, 0, qrCodeBytes.Length);
                     }
-                    logger.LogText($"QRCode has been output to {qrCodeFileName}.");
+                    string qrCodeFullPath = Path.GetFullPath(qrCodeFileName);
+                    logger.LogText($"QRCode '{qrCodeFileName}' has been created in '{qrCodeFullPath}'.");
                     return successCode;
                 }
                 else if (validateCode)
