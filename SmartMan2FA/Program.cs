@@ -45,7 +45,7 @@ namespace SmartMan2FA
                     // create a new instance of the TwoFactorAuthenticator
                     var tfa = new TwoFactorAuthenticator();
                     // generate a new setup code
-                    SetupCode setupInfo = tfa.GenerateSetupCode("SmartMan2FA", account, secretKey, false);
+                    SetupCode setupInfo = tfa.GenerateSetupCode("SmartMan2FA", account, secretKey, true);
                     logger.LogText($"Setup code and QRCode for the account '{account}' have been created successfully.");
                     // write the manual entry setup code to a text file
                     string manualEntrySetupCode = setupInfo.ManualEntryKey;
@@ -85,7 +85,7 @@ namespace SmartMan2FA
                     // create a new instance of the TwoFactorAuthenticator
                     var tfa = new TwoFactorAuthenticator();
                     // validate the pin code
-                    bool pinCodeIsValid = tfa.ValidateTwoFactorPIN(secretKey, pinCode);
+                    bool pinCodeIsValid = tfa.ValidateTwoFactorPIN(secretKey, pinCode, true);
                     if (pinCodeIsValid)
                     {
                         logger.LogText("The pin code is valid.");
