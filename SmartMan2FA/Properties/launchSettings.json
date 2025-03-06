@@ -2,7 +2,7 @@
   "profiles": {
     "SmartMan2FA": {
       "commandName": "Project",
-      "commandLineArgs": "-g -a FrankLin -k 70742842_"
+      "commandLineArgs": "-c"
     }
   }
 }

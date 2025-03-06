@@ -1,11 +1,14 @@
 ﻿using Google.Authenticator;
 
+using System.Security.Cryptography;
+
 namespace SmartMan2FA
 {
     internal class Program
     {
         // -g -a FrankHuang -k mySecretKey to generate a new setup code
         // -v -k mySecretKey -p 123456 to validate a code
+        // -c to create a new key
         // return 0 if the code is valid or the qrcode is generated successfully, otherwise return -1
         static int Main(string[] args)
         {
@@ -21,9 +24,10 @@ namespace SmartMan2FA
                 // Check if the arguments are valid
                 bool generateSetupCode = Array.IndexOf(args, "-g") != -1;
                 bool validateCode = Array.IndexOf(args, "-v") != -1;
-                if (!generateSetupCode && !validateCode)
+                bool createKey = Array.IndexOf(args, "-c") != -1;
+                if (!generateSetupCode && !validateCode && !createKey)
                 {
-                    logger.LogText("Invalid arguments. Please use the format '-g -a FrankHuang -k mySecretKey' to generate a new setup code or '-v -k mySecretKey -p 123456' to validate a pin code.");
+                    logger.LogText("Invalid arguments. Please use the format '-g -a FrankHuang -k mySecretKey' to generate a new setup code or '-v -k mySecretKey -p 123456' to validate a pin code, or -c to create a new key.");
                     return errorCode;
                 }
                 if (generateSetupCode)
@@ -93,8 +97,25 @@ namespace SmartMan2FA
                         return errorCode;
                     }
                 }
-                logger.LogText("Unexpected error.");
-                return errorCode;
+                else if (createKey)
+                {
+                    // generate a new secret key
+                    string secretKey = GenerateSecretKey();
+                    // write the key to a text file
+                    string keyFileName = "secret_key.txt";
+                    using (StreamWriter file = new StreamWriter(keyFileName))
+                    {
+                        file.WriteLine(secretKey);
+                    }
+                    string keyFullPath = Path.GetFullPath(keyFileName);
+                    logger.LogText($"Secret key has been created in '{keyFullPath}'.");
+                    return successCode;
+                }
+                else
+                {
+                    logger.LogText("Invalid arguments. Please use the format '-g -a FrankHuang -k mySecretKey' to generate a new setup code or '-v -k mySecretKey -p 123456' to validate a pin code, or -c to create a new key.");
+                    return errorCode;
+                }
             }
             catch (Exception ex)
             {
@@ -105,6 +126,64 @@ namespace SmartMan2FA
             {
                 logger.LogText("Exiting SmartMan2FA.");
             }
+        }
+        /// <summary>
+        /// Generates a cryptographically secure random secret key for TOTP-based 2FA.
+        /// Returns a Base32 encoded string suitable for TOTP algorithms.
+        /// </summary>
+        /// <param name="length">Length of the key in bytes before Base32 encoding. Default is 16 bytes (128 bits).</param>
+        /// <returns>Base32 encoded secret key</returns>
+        public static string GenerateSecretKey(int length = 16)
+        {
+            // Generate random bytes
+            byte[] randomBytes = new byte[length];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomBytes);
+            }
+
+            // Convert to Base32 (RFC 4648)
+            return Base32Encode(randomBytes);
+        }
+
+        /// <summary>
+        /// Encodes binary data to Base32 string according to RFC 4648.
+        /// Base32 alphabet: ABCDEFGHIJKLMNOPQRSTUVWXYZ234567
+        /// </summary>
+        /// <param name="data">Byte array to encode</param>
+        /// <returns>Base32 encoded string</returns>
+        private static string Base32Encode(byte[] data)
+        {
+            // RFC 4648 Base32 alphabet
+            const string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+
+            // Each 5 bits will be converted to one character
+            int bitsPerChar = 5;
+            int mask = (1 << bitsPerChar) - 1;
+            int bitsLeft = 0;
+            int buffer = 0;
+
+            var result = new System.Text.StringBuilder((data.Length * 8 + bitsPerChar - 1) / bitsPerChar);
+
+            foreach (byte b in data)
+            {
+                buffer = (buffer << 8) | b;
+                bitsLeft += 8;
+
+                while (bitsLeft >= bitsPerChar)
+                {
+                    bitsLeft -= bitsPerChar;
+                    result.Append(alphabet[(buffer >> bitsLeft) & mask]);
+                }
+            }
+
+            // If there are remaining bits
+            if (bitsLeft > 0)
+            {
+                result.Append(alphabet[(buffer << (bitsPerChar - bitsLeft)) & mask]);
+            }
+
+            return result.ToString();
         }
     }
 }
